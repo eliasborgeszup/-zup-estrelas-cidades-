@@ -2,7 +2,10 @@ package br.com.zup.estrelas.cidades.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import br.com.zup.estrelas.cidades.connection.factory.ConnectionFactory;
 import br.com.zup.estrelas.cidades.pojo.CidadePOJO;
@@ -14,75 +17,122 @@ public class CidadeDAO {
 		this.conexao = new ConnectionFactory().obterConexao();
 	}
 
-	public void insereCidadeBD(CidadePOJO cidade) throws SQLException {
-
-		String inserirCidadeSql = "INSERT INTO banco_estrelas.cidade"
+	public boolean insereCidadeBD(CidadePOJO cidade){
+		String inserirCidadeSql = "INSERT INTO cidade"
 				+ "(cep, nome, numero_habitantes, capital, estado, renda_per_capita, data_fundacao)"
 				+ "VALUES (?, ?, ?, ?, ?, ?, ?)";
+		try {
+			PreparedStatement stmt = conexao.prepareStatement(inserirCidadeSql);
+			stmt.setString(1, cidade.getCep());
+			stmt.setString(2, cidade.getNome());
+			stmt.setInt(3, cidade.getNumeroHabitantes());
+			stmt.setBoolean(4, cidade.isCapital());
+			stmt.setString(5, cidade.getEstado());
+			stmt.setDouble(6, cidade.getRendaPerCapita());
+			stmt.setString(7, cidade.getDataFundacao());
 
-		PreparedStatement stmt = conexao.prepareStatement(inserirCidadeSql);
-		stmt.setString(1, cidade.getCep());
-		stmt.setString(2, cidade.getNome());
-		stmt.setInt(3, cidade.getNumeroHabitantes());
-		stmt.setBoolean(4, cidade.isCapital());
-		stmt.setString(5, cidade.getEstado());
-		stmt.setDouble(6, cidade.getRendaPerCapita());
-		stmt.setString(7, cidade.getDataFundacao());
-
-		if (!stmt.execute()) {
+			stmt.execute();
 			stmt.close();
-			return;
+		} catch (SQLException e) {
+			System.err.println("Não foi possivel cadastrar cidade, tente novamente");
+			System.err.println(e.getMessage());
+			return false;
 		}
-
-		stmt.close();
-		throw new SQLException("Não foi possivel inserir no BD, tente novamente");
+		
+		return true;
 	}
 
-	public void excluirCidadeBD(String cep) throws SQLException {
+	public boolean excluirCidadeBD(String cep){
+		String deletarCidadeSql = "DELETE FROM cidade" + " WHERE cep = ?";
 
-		String deletarCidadeSql = "DELETE FROM banco_estrelas.cidade" + " WHERE cep = ?";
+		try {
+			PreparedStatement stmt = conexao.prepareStatement(deletarCidadeSql);
+			stmt.setString(1, cep);
 
-		PreparedStatement stmt = conexao.prepareStatement(deletarCidadeSql);
-		stmt.setString(1, cep);
-
-		if (stmt.executeUpdate() == 1) {
+			stmt.executeUpdate();
 			stmt.close();
-			return;
+		} catch (SQLException e) {
+			System.err.printf("Não foi possivel excluir o CEP %s no BD, tente novamente\n", cep);
+			System.err.println(e.getMessage());
+			return false;
 		}
-
-		throw new SQLException(String.format("Não foi possivel excluir o CEP %s no BD, tente novamente", cep));
-
+		
+		return true;
 	}
 
-	public boolean verificarCepCadastrado(String cep) throws SQLException {
+	public CidadePOJO buscaCepCadastrado(String cep) {
+		CidadePOJO cidade = new CidadePOJO();
 
-		String buscarCepSql = "SELECT * FROM banco_estrelas.cidade WHERE cep = ?";
+		String buscarCepSql = "SELECT * FROM cidade WHERE cep = ?";
 
-		PreparedStatement stmt = conexao.prepareStatement(buscarCepSql);
-		stmt.setString(1, cep);
+		try {
+			PreparedStatement stmt = conexao.prepareStatement(buscarCepSql);
+			stmt.setString(1, cep);
 
-		if (stmt.executeQuery().next()) {
-			stmt.close();
-			return true;
+			ResultSet rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				cidade.setCep(rs.getString("cep"));
+				cidade.setNome(rs.getString("nome"));
+				cidade.setNumeroHabitantes(rs.getInt("numero_habitantes"));
+				cidade.setCapital(rs.getBoolean("capital"));
+				cidade.setEstado(rs.getString("estado"));
+				cidade.setRendaPerCapita(rs.getDouble("renda_per_capita"));
+				cidade.setDataFundacao(rs.getString("data_fundacao"));
+			}
+
+		} catch (SQLException e) {
+			System.err.println("Erro ao lista cidade" + e.getMessage());
 		}
 
-		stmt.close();
+		return cidade;
+	}
+
+	public boolean verificarEstadoCadastrado(String estado) {
+		String buscarCepSql = "SELECT * FROM estado WHERE sigla = ?";
+
+		try {
+			PreparedStatement stmt = conexao.prepareStatement(buscarCepSql);
+			stmt.setString(1, estado);
+
+			if (stmt.executeQuery().next()) {
+				stmt.close();
+				return true;
+			}
+		} catch (SQLException e) {
+			return false;
+		}
+
 		return false;
 	}
 
-	public boolean verificarEstadoCadastrado(String estado) throws SQLException {
+	public List<CidadePOJO> listarCidadesBD() {
+		List<CidadePOJO> cidades = new ArrayList<>();
 
-		String buscarCepSql = "SELECT * FROM banco_estrelas.estado WHERE sigla = ?";
+		String selecionarCidadesSql = "SELECT * FROM cidade";
 
-		PreparedStatement stmt = conexao.prepareStatement(buscarCepSql);
-		stmt.setString(1, estado);
+		try {
+			PreparedStatement stmt = conexao.prepareStatement(selecionarCidadesSql);
 
-		if (stmt.executeQuery().next()) {
-			stmt.close();
-			return true;
+			ResultSet rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				CidadePOJO cidade = new CidadePOJO();
+
+				cidade.setCep(rs.getString("cep"));
+				cidade.setNome(rs.getString("nome"));
+				cidade.setNumeroHabitantes(rs.getInt("numero_habitantes"));
+				cidade.setCapital(rs.getBoolean("capital"));
+				cidade.setEstado(rs.getString("estado"));
+				cidade.setRendaPerCapita(rs.getDouble("renda_per_capita"));
+				cidade.setDataFundacao(rs.getString("data_fundacao"));
+
+				cidades.add(cidade);
+			}
+		} catch (SQLException e) {
+			System.err.println("Erro ao lista cidade" + e.getMessage());
 		}
-		stmt.close();
-		return false;
+		return cidades;
 	}
 
 	public void fecharConexaoBD() throws SQLException {
