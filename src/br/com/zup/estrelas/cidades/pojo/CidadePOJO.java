@@ -1,7 +1,5 @@
 package br.com.zup.estrelas.cidades.pojo;
 
-import java.util.Date;
-
 public class CidadePOJO {
 	private String cep;
 	private String nome;

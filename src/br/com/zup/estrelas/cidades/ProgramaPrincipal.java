@@ -14,11 +14,11 @@ public class ProgramaPrincipal {
 
 	private static final String REGEX_NOME = "[A-Za-z·‡‚„ÈËÍÌÔÛÙıˆ˙ÁÒ¡¿¬√…»Õœ”‘’÷⁄«— ]*";
 
-	private static final String REGEX_ESTADO = "[a-zA-Z]{2}";
+	private static final String REGEX_ESTADO = "[A-Z]{2}";
 
 	private static final String REGEX_CEP = "[0-9]{8}";
 
-	private static final String REGEX_FORMATO_NUMERICO = "[1-9]*";
+	private static final String REGEX_FORMATO_NUMERICO = "[0-9]*";
 
 	private static final String REGEX_DATA = "((15|16|17|18|19|20|[0-9])[0-9]{2})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])";
 
@@ -29,8 +29,9 @@ public class ProgramaPrincipal {
 
 		System.out.print("Digite o CEP (00000000): ");
 		String cep = teclado.nextLine();
+
 		while (cidadeDao.verificarCepCadastrado(cep) || !Pattern.matches(REGEX_CEP, cep)) {
-			System.out.print("Ops.. CEP inexistente ou invalido, digite novamente: ");
+			System.out.print("Ops.. CEP cadastrado ou invalido, digite novamente: ");
 			cep = teclado.nextLine();
 		}
 
@@ -50,7 +51,7 @@ public class ProgramaPrincipal {
 
 		int numeroHabitantes = Integer.parseInt(stringNumeroHabitantes);
 
-		System.out.print("Cidade cadastrada È capital? \n\nDigite 1 - SIM \\n2 - N√O: ");
+		System.out.print("\nCidade cadastrada È capital? \nDigite 1 - SIM 2 - N√O: ");
 		int opcaoCapital = teclado.nextInt();
 
 		while (opcaoCapital != 1 && opcaoCapital != 2) {
@@ -67,15 +68,15 @@ public class ProgramaPrincipal {
 		}
 
 		teclado.nextLine();
-		System.out.print("Estado: ");
-		String estado = teclado.nextLine();
-		while (!Pattern.matches(REGEX_ESTADO, estado)) {
-			System.out.print("Ops.. Estado invalido, digite novamente: ");
-			estado = teclado.nextLine();
-		}
-		estado = estado.toUpperCase();
+		System.out.print("Sigla do estado (AA): ");
+		String estado = teclado.nextLine().toUpperCase();
 
-		System.out.print("Renda por capita: ");
+		while (!cidadeDao.verificarEstadoCadastrado(estado) || !Pattern.matches(REGEX_ESTADO, estado)) {
+			System.out.print("Ops.. Estado invalido, digite novamente: ");
+			estado = teclado.nextLine().toUpperCase();
+		}
+
+		System.out.print("Renda por capita: R$");
 		String stringRendaPerCapita = teclado.nextLine();
 
 		while (!Pattern.matches(REGEX_FORMATO_NUMERICO, stringRendaPerCapita)) {
@@ -85,7 +86,6 @@ public class ProgramaPrincipal {
 
 		double rendaPerCapita = Double.parseDouble(stringRendaPerCapita);
 
-		teclado.nextLine();
 		System.out.print("Data da fundaÁ„o (AAAA-MM-DD): ");
 		String dataFundacao = teclado.nextLine();
 
@@ -150,6 +150,10 @@ public class ProgramaPrincipal {
 
 			case 4:
 				System.out.println("Em desenvolvimento");
+				break;
+
+			case 0:
+				System.out.println("Volte sempre :)");
 				break;
 
 			default:
