@@ -9,10 +9,16 @@ public class CidadePOJO {
 	private boolean capital;
 	private String estado;
 	private double rendaPerCapita;
-	private String dataFuncao;
+	private String dataFundacao;
 	
-	public CidadePOJO() {
-		
+	public CidadePOJO(String cep, String nome, int numeroHabitantes, boolean capital, String estado, double rendaPerCapita, String dataFundacao) {
+		this.cep = cep;
+		this.nome = nome;
+		this.numeroHabitantes = numeroHabitantes;
+		this.capital = capital;
+		this.estado = estado;
+		this.rendaPerCapita = rendaPerCapita;
+		this.dataFundacao = dataFundacao;
 	}
 
 	public String getCep() {
@@ -39,7 +45,7 @@ public class CidadePOJO {
 		return rendaPerCapita;
 	}
 
-	public String getDataFuncao() {
-		return dataFuncao;
+	public String getDataFundacao() {
+		return dataFundacao;
 	}
 }

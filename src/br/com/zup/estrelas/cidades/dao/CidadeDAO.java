@@ -27,7 +27,7 @@ public class CidadeDAO {
 			stmt.setBoolean(4, cidade.isCapital());
 			stmt.setString(5, cidade.getEstado());
 			stmt.setDouble(6, cidade.getRendaPerCapita());
-			stmt.setString(7, cidade.getDataFuncao().toString());
+			stmt.setString(7, cidade.getDataFundacao());
 			
 			stmt.execute();
 			stmt.close();
@@ -39,11 +39,11 @@ public class CidadeDAO {
 	public void excluirCidadeBD(String cep) throws SQLException{
 		try {
 			String deletarCidadeSql = "DELETE FROM banco_estrelas.cidade" +
-					"WHERE cep = ?";
+					" WHERE cep = ?";
 			
 			PreparedStatement stmt = conexao.prepareStatement(deletarCidadeSql);
 			stmt.setString(1, cep);
-			stmt.execute();
+			stmt.executeUpdate();
 			stmt.close();
 		} catch (SQLException e) {
 			throw new SQLException(String.format("Não foi possivel excluir o CEP %s no BD, tente novamente", cep));
