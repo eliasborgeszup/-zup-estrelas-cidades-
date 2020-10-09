@@ -10,7 +10,7 @@ import br.com.zup.estrelas.cidades.pojo.CidadePOJO;
 public class ProgramaPrincipal {
 
 	private static final String MENU = ("-------- BEM VINDO AO SISTEMA DE CADASTRO DO IBGE --------"
-			+ "\n\n1 - Cadastrar cidade \n2 - Excluir cidade \n0 - Sair");
+			+ "\n\n1 - Cadastrar cidade \n2 - Excluir cidade \n3 - Alterar cidade \n4 - Visualizar cidades \n0 - Sair");
 
 	private static final String REGEX_NOME = "[A-Za-z·‡‚„ÈËÍÌÔÛÙıˆ˙ÁÒ¡¿¬√…»Õœ”‘’÷⁄«— ]*";
 
@@ -18,19 +18,19 @@ public class ProgramaPrincipal {
 
 	private static final String REGEX_CEP = "[0-9]{8}";
 
-	private static final String REGEX_QUANTIDADE_HABITANTES = "[1-9]*";
-
-	private static final String REGEX_RENDA_PER_CAPITA = "[1-9]*";
+	private static final String REGEX_FORMATO_NUMERICO = "[1-9]*";
 
 	private static final String REGEX_DATA = "((15|16|17|18|19|20|[0-9])[0-9]{2})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])";
 
-	public static void cadastrarCidade(Scanner teclado) {
+	public static void cadastrarCidade(Scanner teclado) throws SQLException {
+		CidadeDAO cidadeDao = new CidadeDAO();
+
 		teclado.nextLine();
 
 		System.out.print("Digite o CEP (00000000): ");
 		String cep = teclado.nextLine();
-		while (!Pattern.matches(REGEX_CEP, cep)) {
-			System.out.print("Ops.. CEP invalido, digite novamente: ");
+		while (cidadeDao.verificarCepCadastrado(cep) || !Pattern.matches(REGEX_CEP, cep)) {
+			System.out.print("Ops.. CEP inexistente ou invalido, digite novamente: ");
 			cep = teclado.nextLine();
 		}
 
@@ -43,14 +43,14 @@ public class ProgramaPrincipal {
 
 		System.out.print("Digite o numero da habitantes: ");
 		String stringNumeroHabitantes = teclado.nextLine();
-		while (!Pattern.matches(REGEX_QUANTIDADE_HABITANTES, stringNumeroHabitantes)) {
+		while (!Pattern.matches(REGEX_FORMATO_NUMERICO, stringNumeroHabitantes)) {
 			System.out.print("Ops.. Numero de habitantes invalido, digite novamente: ");
 			stringNumeroHabitantes = teclado.nextLine();
 		}
 
 		int numeroHabitantes = Integer.parseInt(stringNumeroHabitantes);
 
-		System.out.print("\n\n1 - SIM \n2 - N√O\n" + "Cidade cadastrada È capital: ");
+		System.out.print("Cidade cadastrada È capital? \n\nDigite 1 - SIM \\n2 - N√O: ");
 		int opcaoCapital = teclado.nextInt();
 
 		while (opcaoCapital != 1 && opcaoCapital != 2) {
@@ -78,7 +78,7 @@ public class ProgramaPrincipal {
 		System.out.print("Renda por capita: ");
 		String stringRendaPerCapita = teclado.nextLine();
 
-		while (!Pattern.matches(REGEX_RENDA_PER_CAPITA, stringRendaPerCapita)) {
+		while (!Pattern.matches(REGEX_FORMATO_NUMERICO, stringRendaPerCapita)) {
 			System.out.print("Ops.. Renda per capita invalida, digite novamente: ");
 			stringRendaPerCapita = teclado.nextLine();
 		}
@@ -95,8 +95,6 @@ public class ProgramaPrincipal {
 		}
 
 		CidadePOJO cidade = new CidadePOJO(cep, nome, numeroHabitantes, capital, estado, rendaPerCapita, dataFundacao);
-
-		CidadeDAO cidadeDao = new CidadeDAO();
 
 		try {
 			cidadeDao.insereCidadeBD(cidade);
@@ -116,7 +114,7 @@ public class ProgramaPrincipal {
 			System.out.print("Ops.. CEP invalido, digite novamente: ");
 			cep = teclado.nextLine();
 		}
-		
+
 		CidadeDAO cidadeDao = new CidadeDAO();
 
 		try {
@@ -126,9 +124,8 @@ public class ProgramaPrincipal {
 			System.out.println(e.getMessage());
 		}
 	}
-	
-	
-	public static void main(String[] args) {
+
+	public static void main(String[] args) throws SQLException {
 		Scanner teclado = new Scanner(System.in);
 		int opcao = 0;
 
@@ -145,6 +142,14 @@ public class ProgramaPrincipal {
 
 			case 2:
 				excluirCidade(teclado);
+				break;
+
+			case 3:
+				System.out.println("Em desenvolvimento");
+				break;
+
+			case 4:
+				System.out.println("Em desenvolvimento");
 				break;
 
 			default:
