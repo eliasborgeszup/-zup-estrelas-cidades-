@@ -1,1 +1,1 @@
-# -zup-estrelas-cidades-
+# zup-estrelas-cidades
