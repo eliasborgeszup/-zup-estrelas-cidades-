@@ -6,89 +6,50 @@ import java.util.Scanner;
 import java.util.regex.Pattern;
 
 import br.com.zup.estrelas.cidades.dao.CidadeDAO;
+import br.com.zup.estrelas.cidades.dao.EstadoDAO;
 import br.com.zup.estrelas.cidades.pojo.CidadePOJO;
-import br.com.zup.estrelas.cidades.regex.REGEX;
+import br.com.zup.estrelas.cidades.pojo.EstadoPOJO;
+import br.com.zup.estrelas.cidades.validacoes.ClienteValidacao;
 
 public class ProgramaPrincipal {
 
 	private static final String MENU = ("-------- BEM VINDO AO SISTEMA DE CADASTRO DO IBGE --------"
-			+ "\n\n1 - Cadastrar cidade \n2 - Excluir cidade \n3 - Alterar cidade \n4 - Visualizar cidades \n5 - Buscar cidade por CEP \n0 - Sair");
+			+ "\n\n1 - Cadastrar cidade \n2 - Excluir cidade "
+			+ "\n3 - Visualizar cidades \n4 - Buscar cidade por CEP \n5 - Buscar cidade por nome "
+			+ "\n6 - Buscar cidade pela sigla do estado \n7 - Buscar cidade por capital \n0 - Sair");
 
 	public static void cadastrarCidade(Scanner teclado) {
 		CidadeDAO cidadeDao = new CidadeDAO();
 
-		teclado.nextLine();
-
 		System.out.print("Digite o CEP (00000000): ");
 		String cep = teclado.nextLine();
-
-		CidadePOJO cidadePOJO = cidadeDao.buscaCepCadastrado(cep);
-
-		while (cidadePOJO.getCep() != null || !Pattern.matches(REGEX.CEP, cep)) {
-			System.out.print("Ops.. CEP não cadastrado ou invalido, digite novamente: ");
-			cep = teclado.nextLine();
-
-			cidadePOJO = cidadeDao.buscaCepCadastrado(cep);
-		}
+		cep = ClienteValidacao.validaCepCadastrado(teclado, cep);
 
 		System.out.print("Digite o nome: ");
 		String nome = teclado.nextLine();
-		while (!Pattern.matches(REGEX.NOME, nome)) {
-			System.out.print("Ops.. Nome invalido, digite novamente: ");
-			nome = teclado.nextLine();
-		}
+		nome = ClienteValidacao.validaNome(teclado, nome);
 
 		System.out.print("Digite o numero da habitantes: ");
 		String stringNumeroHabitantes = teclado.nextLine();
-		while (!Pattern.matches(REGEX.FORMATO_NUMERICO, stringNumeroHabitantes)) {
-			System.out.print("Ops.. Numero de habitantes invalido, digite novamente: ");
-			stringNumeroHabitantes = teclado.nextLine();
-		}
-
-		int numeroHabitantes = Integer.parseInt(stringNumeroHabitantes);
+		int numeroHabitantes = ClienteValidacao.validaNumeroHabitantes(teclado, stringNumeroHabitantes);
 
 		System.out.print("\nCidade cadastrada é capital? \nDigite 1 - SIM 2 - NÃO: ");
 		int opcaoCapital = teclado.nextInt();
-
-		while (opcaoCapital != 1 && opcaoCapital != 2) {
-			System.out.print("Ops.. Opção invalida, digite novamente: ");
-			opcaoCapital = teclado.nextInt();
-		}
-
-		boolean capital;
-
-		if (opcaoCapital == 1) {
-			capital = true;
-		} else {
-			capital = false;
-		}
+		boolean capital = ClienteValidacao.validaCapital(teclado, opcaoCapital);
 
 		teclado.nextLine();
+
 		System.out.print("Sigla do estado (AA): ");
 		String estado = teclado.nextLine().toUpperCase();
-
-		while (!cidadeDao.verificarEstadoCadastrado(estado) || !Pattern.matches(REGEX.ESTADO, estado)) {
-			System.out.print("Ops.. Estado invalido, digite novamente: ");
-			estado = teclado.nextLine().toUpperCase();
-		}
+		estado = ClienteValidacao.validaEstado(teclado, estado);
 
 		System.out.print("Renda por capita: R$");
 		String stringRendaPerCapita = teclado.nextLine();
-
-		while (!Pattern.matches(REGEX.FORMATO_NUMERICO, stringRendaPerCapita)) {
-			System.out.print("Ops.. Renda per capita invalida, digite novamente: ");
-			stringRendaPerCapita = teclado.nextLine();
-		}
-
-		double rendaPerCapita = Double.parseDouble(stringRendaPerCapita);
+		double rendaPerCapita = ClienteValidacao.validaRendaPerCapita(teclado, stringRendaPerCapita);
 
 		System.out.print("Data da fundação (AAAA-MM-DD): ");
 		String dataFundacao = teclado.nextLine();
-
-		while (!Pattern.matches(REGEX.DATA, dataFundacao)) {
-			System.out.print("Ops.. data invalida, digite novamente: ");
-			dataFundacao = teclado.nextLine();
-		}
+		dataFundacao = ClienteValidacao.validaDataFundacao(teclado, dataFundacao);
 
 		CidadePOJO cidade = new CidadePOJO(cep, nome, numeroHabitantes, capital, estado, rendaPerCapita, dataFundacao);
 
@@ -99,19 +60,10 @@ public class ProgramaPrincipal {
 
 	public static void excluirCidade(Scanner teclado) {
 		CidadeDAO cidadeDao = new CidadeDAO();
-		teclado.nextLine();
 
 		System.out.print("Digite o CEP (00000000): ");
 		String cep = teclado.nextLine();
-
-		CidadePOJO cidadePOJO = cidadeDao.buscaCepCadastrado(cep);
-
-		while (cidadePOJO.getCep() == null || !Pattern.matches(REGEX.CEP, cep)) {
-			System.out.print("Ops.. CEP não cadastrado ou invalido, digite novamente: ");
-			cep = teclado.nextLine();
-
-			cidadePOJO = cidadeDao.buscaCepCadastrado(cep);
-		}
+		cep = ClienteValidacao.validaCep(teclado, cep);
 
 		if (cidadeDao.excluirCidadeBD(cep)) {
 			System.out.println("Cidade excluida com sucesso!");
@@ -121,27 +73,32 @@ public class ProgramaPrincipal {
 
 	public static void listarCidades() {
 		CidadeDAO cidadeDAO = new CidadeDAO();
-		List<CidadePOJO> cidadesDB = cidadeDAO.listarCidadesBD();
+		List<CidadePOJO> cidadesBD = cidadeDAO.listarCidadesBD();
 
-		for (CidadePOJO cidadePOJO : cidadesDB) {
-			System.out.printf(
-					"Nome: %s | CEP: %s | Numero habitantes: %d | Capital: %b | Estado: %s "
-							+ "| Renda per capita: %.2f | Data fundação: %s\n\n",
-					cidadePOJO.getNome(), cidadePOJO.getCep(), cidadePOJO.getNumeroHabitantes(), cidadePOJO.isCapital(),
-					cidadePOJO.getEstado(), cidadePOJO.getRendaPerCapita(), cidadePOJO.getDataFundacao());
+		imprimirListaCidades(cidadesBD);
+	}
+
+	public static void listarSiglasEstados() {
+		EstadoDAO estadoDAO = new EstadoDAO();
+		List<EstadoPOJO> estadosBD = estadoDAO.listarEstados();
+
+		System.out.println("================================ SIGLAS EXISTENTES ================================\n");
+
+		for (EstadoPOJO estadoPOJO : estadosBD) {
+			System.out.printf("%s ", estadoPOJO.getSigla());
 		}
+		System.out.println("\n\n===================================================================================");
 	}
 
 	public static void listaCidadePorCep(Scanner teclado) {
 		CidadeDAO cidadeDao = new CidadeDAO();
 
-		teclado.nextLine();
 		System.out.print("Digite o CEP (00000000): ");
 		String cep = teclado.nextLine();
 
 		CidadePOJO cidadePOJO = cidadeDao.buscaCepCadastrado(cep);
 
-		while (cidadePOJO.getCep() == null || !Pattern.matches(REGEX.CEP, cep)) {
+		while (cidadePOJO.getCep() == null || !Pattern.matches(ClienteValidacao.REGEX_CEP, cep)) {
 			System.out.print("Ops.. CEP não cadastrado ou invalido, digite novamente: ");
 			cep = teclado.nextLine();
 
@@ -155,6 +112,50 @@ public class ProgramaPrincipal {
 				cidadePOJO.getEstado(), cidadePOJO.getRendaPerCapita(), cidadePOJO.getDataFundacao());
 	}
 
+	public static void listaCidadesPorNome(Scanner teclado) {
+		System.out.print("Digite o nome que deseja filtrar: ");
+		String nome = teclado.nextLine();
+		nome = ClienteValidacao.validaNome(teclado, nome);
+
+		CidadeDAO cidadeDAO = new CidadeDAO();
+		List<CidadePOJO> cidadesBD = cidadeDAO.listarCidadesPorNome(nome);
+
+		imprimirListaCidades(cidadesBD);
+	}
+
+	public static void imprimirListaCidades(List<CidadePOJO> cidadesBD) {
+		for (CidadePOJO cidadePOJO : cidadesBD) {
+			System.out.printf(
+					"Nome: %s | CEP: %s | Numero habitantes: %d | Capital: %b | Estado: %s "
+							+ "| Renda per capita: %.2f | Data fundação: %s\n\n",
+					cidadePOJO.getNome(), cidadePOJO.getCep(), cidadePOJO.getNumeroHabitantes(), cidadePOJO.isCapital(),
+					cidadePOJO.getEstado(), cidadePOJO.getRendaPerCapita(), cidadePOJO.getDataFundacao());
+		}
+	}
+
+	public static void listaCidadesPorSigla(Scanner teclado) {
+		System.out.print("\nDigite uma sigla do estado (AA) que deseja filtra: ");
+		String sigla = teclado.nextLine().toUpperCase();
+		sigla = ClienteValidacao.validaEstado(teclado, sigla);
+
+		CidadeDAO cidadeDAO = new CidadeDAO();
+		List<CidadePOJO> cidadesBD = cidadeDAO.listarCidadesPorSigla(sigla);
+
+		imprimirListaCidades(cidadesBD);
+	}
+
+	public static void listaCidadesPorCapital(Scanner teclado) {
+		System.out.print("\nDigite 1 - PARA CAPITAIS 2 - PARA MUNICIPIOS: ");
+		int opcaoCapital = teclado.nextInt();
+		boolean capital = ClienteValidacao.validaCapital(teclado, opcaoCapital);
+
+		CidadeDAO cidadeDAO = new CidadeDAO();
+		List<CidadePOJO> cidadesBD = cidadeDAO.listarCidadesPorCapital(capital);
+
+		imprimirListaCidades(cidadesBD);
+		System.out.println(teclado.nextLine());
+	}
+
 	public static void main(String[] args) throws SQLException {
 		Scanner teclado = new Scanner(System.in);
 		int opcao = 0;
@@ -163,7 +164,8 @@ public class ProgramaPrincipal {
 			System.out.println(MENU);
 
 			System.out.print("\nDigite uma opção: ");
-			opcao = teclado.nextInt();
+			String stringOpcao = teclado.nextLine();
+			opcao = ClienteValidacao.validaOpcao(teclado, stringOpcao);
 
 			switch (opcao) {
 			case 1:
@@ -175,15 +177,24 @@ public class ProgramaPrincipal {
 				break;
 
 			case 3:
-				System.out.println("Em desenvolvimento");
-				break;
-
-			case 4:
 				listarCidades();
 				break;
 
-			case 5:
+			case 4:
 				listaCidadePorCep(teclado);
+				break;
+
+			case 5:
+				listaCidadesPorNome(teclado);
+				break;
+
+			case 6:
+				listarSiglasEstados();
+				listaCidadesPorSigla(teclado);
+				break;
+
+			case 7:
+				listaCidadesPorCapital(teclado);
 				break;
 
 			case 0:
